@@ -1,7 +1,20 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "hlist.h"
 #include "klist.h"
+
+#define STU_HT_SIZE 4
+
+struct stu_node {
+    unsigned int        sn_no;
+    char                stu_name[32];
+    struct hlist_node   node;
+};
+
+static struct hlist_head stu_ht[STU_HT_SIZE];
 
 struct stu {
 	int num;
@@ -9,7 +22,7 @@ struct stu {
 	struct list_head list;
 };
 
-int main(void)
+int test_list(void)
 {
 	struct stu *list_node = NULL;
 	struct list_head *pos = NULL,*n = NULL;
@@ -61,4 +74,38 @@ int main(void)
 
 	free(head);
 	return 0;
+}
+
+int main(void)
+{
+    int i = 0;
+    for (i = 0; i < STU_HT_SIZE; ++i)
+    {
+        INIT_HLIST_HEAD(&stu_ht[i]);
+    }
+
+    for (i = 0; i < 12; ++i)
+    {
+        struct stu_node *stu = (struct stu_node *)malloc(
+                sizeof(struct stu_node));
+        assert(NULL != stu);
+        printf("Please input sn_no and name:\n");
+        scanf("%d", &stu->sn_no);
+        scanf("%s", stu->stu_name);
+        INIT_HLIST_NODE(&stu->node);
+
+        hlist_add_head(&stu->node, &stu_ht[stu->sn_no%STU_HT_SIZE]);
+    }
+
+    for (i = 0; i < STU_HT_SIZE; ++i)
+    {
+        printf("\nIn %d Hash List:\n", i);
+        struct hlist_node *pos = NULL;
+        hlist_for_each(pos, &stu_ht[i])
+        {
+            struct stu_node *stu = hlist_entry(pos, struct stu_node, node);
+            printf("no:%d name:%s\n", stu->sn_no, stu->stu_name);
+        }
+    }
+    return 0;
 }
